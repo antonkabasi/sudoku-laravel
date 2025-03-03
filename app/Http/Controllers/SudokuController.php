@@ -38,7 +38,7 @@ class SudokuController extends Controller
     {
         $sudoku = unserialize(Session::get('SudokuPuzzle'));
         if (!$sudoku) {
-            return redirect()->route('home');
+            return response()->json(['status' => 'error', 'message' => 'No puzzle found.']);
         }
 
         // Update board with user inputs
@@ -52,45 +52,83 @@ class SudokuController extends Controller
 
         // Check if the puzzle is solved
         $status = $this->checkStatus($sudoku->Board, $sudoku->Solved);
+        $message = "";
 
         if ($status == "GameNotOver") {
-            $message = "The game isn't over yet.";
+            $message = "🟡 The game isn't over yet.";
             Session::forget('StopTime');
         } elseif ($status == "SomeIncorrect") {
-            $message = "Some entries are incorrect.";
+            $message = "❌ Some entries are incorrect.";
             Session::forget('StopTime');
         } else {
-            $message = "Congratulations! You solved the puzzle.";
+            $message = "🎉 Congratulations! You solved the puzzle.";
             Session::put('StopTime', Carbon::now()->toIso8601String());
         }
 
         // Store updated game state
         Session::put('SudokuPuzzle', serialize($sudoku));
 
-        return view('sudoku', compact('sudoku', 'message'));
+        return response()->json([
+            'status' => $status,
+            'message' => $message
+        ]);
     }
+
 
     // POST: /sudoku/solve
     public function solve()
     {
+        // Retrieve the stored puzzle from session
         $sudokuGame = unserialize(Session::get('SudokuPuzzle'));
+
         if (!$sudokuGame) {
-            return redirect()->route('home');
+            return response()->json(['status' => 'error', 'message' => 'No puzzle found.']);
         }
 
-        // ✅ Fill in missing values with the solution (don't generate a new puzzle)
+        // ✅ Fill only empty cells with correct solution
         for ($i = 0; $i < 9; $i++) {
             for ($j = 0; $j < 9; $j++) {
-                if ($sudokuGame->Board[$i][$j] == 0) {
+                if ($sudokuGame->Board[$i][$j] == 0) { // Only overwrite empty cells
                     $sudokuGame->Board[$i][$j] = $sudokuGame->Solved[$i][$j];
                 }
             }
         }
 
+        // ✅ Store the updated board in session
         Session::put('SudokuPuzzle', serialize($sudokuGame));
 
-        return view('sudoku', ['sudoku' => $sudokuGame, 'message' => "The puzzle has been solved."]);
+        return response()->json([
+            'status' => 'solved',
+            'message' => '✅ The puzzle has been solved.',
+            'board' => $sudokuGame->Board // Send the updated board back
+        ]);
     }
+
+    public function stopwatchTime()
+    {
+        $startTimeStr = Session::get('GameStartTime');
+
+        if (!$startTimeStr) {
+            return response()->json(['elapsed' => 0]); // Default to 0 if no start time
+        }
+
+        try {
+            $startTime = Carbon::parse($startTimeStr);
+            $stopTimeStr = Session::get('StopTime');
+            $effectiveTime = $stopTimeStr ? Carbon::parse($stopTimeStr) : Carbon::now();
+
+            $elapsed = max(0, $effectiveTime->diffInSeconds($startTime)); // ✅ Always positive integer
+
+            return response()->json(['elapsed' => $elapsed]);
+
+        } catch (\Exception $e) {
+            return response()->json(['elapsed' => 0, 'error' => 'Invalid timestamp'], 500);
+        }
+    }
+
+
+
+
 
     // Helper function to check puzzle status
     private function checkStatus($userGrid, $solvedGrid)

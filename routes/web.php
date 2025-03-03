@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
+use App\Http\Controllers\SudokuController;
 
 // Default Home Route (redirect to Sudoku)
 Route::get('/', function () {
