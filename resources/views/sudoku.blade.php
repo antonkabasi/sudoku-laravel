@@ -13,8 +13,8 @@
         <a class="btn btn-primary mx-2" href="{{ route('home', ['difficulty' => 'hard']) }}">Hard</a>
     </div>
 
-    <!-- Fixed message container so messages don't shift the layout -->
-    <div id="gameResult" class="alert text-center mt-3" style="height:50px; margin-bottom:10px; overflow:hidden; visibility:hidden;"></div>
+    <!-- Fixed message container so messages don't shift layout -->
+    <div id="gameResult" class="alert text-center mt-3 h-12 invisible" style="height:50px; margin-bottom:10px; overflow:hidden;"></div>
 
     <!-- Sudoku Board -->
     <form id="sudokuForm" action="{{ route('check') }}" method="POST">
@@ -55,22 +55,20 @@
     </div>
 </div>
 
-<!-- Custom CSS for additional styling -->
+<!-- Custom CSS for Message Container and Highlighting -->
 <style>
-    /* Fixed message container so messages don't shift the layout */
+    /* Fixed message container styling */
     #gameResult {
-        /* height and margin are set inline above; you could also use Tailwind classes via config */
+        /* Height, margin, and overflow are set inline for reserved space */
     }
-    /* Auto-message container if needed */
-    #autoMessage {
-        height: 30px;
-        margin-bottom: 10px;
-        overflow: hidden;
-        font-weight: bold;
-    }
-    /* Highlighting: use Tailwind green-200 equivalent */
+    /* Highlighting for non-given cells */
     .highlight, .highlight input {
         background-color: #c8e6c9 !important;
+    }
+    /* Additional styling for originally given cells */
+    .given-highlight, .given-highlight input {
+        background-color: #c8e6c9 !important; /* Same green highlight */
+        border: 2px solid #4caf50; /* For example, a green border to differentiate */
     }
 </style>
 
@@ -107,21 +105,21 @@ function updateStopwatchDisplay() {
 function startTimer() {
     if (timerInterval !== null) return; // Prevent multiple intervals
     timerInterval = setInterval(() => {
-        elapsedSeconds++;
+        elapsedSeconds++; 
         updateStopwatchDisplay();
     }, 1000);
 }
 
-// Stop the timer when the puzzle is solved
+// Stop the timer
 function stopTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
 }
 
-// Fetch time from the server when the page loads
+// Fetch time on page load
 fetchStopwatchTime();
 
-// AJAX-based Check Button - Stops the timer if solved, restarts if incorrect
+// AJAX-based Check Button - stops timer if solved, restarts if not
 document.getElementById('sudokuForm').addEventListener('submit', function (event) {
     event.preventDefault();
     let formData = new FormData(this);
@@ -133,13 +131,11 @@ document.getElementById('sudokuForm').addEventListener('submit', function (event
     .then(data => {
         let resultBox = document.getElementById('gameResult');
         resultBox.textContent = data.message;
-        // Stop the timer if solved; restart if not
         if (data.status === "Correct") {
             stopTimer();
         } else {
             startTimer();
         }
-        // Update message styling (you can adjust classes as needed)
         resultBox.classList.remove("hidden", "invisible", "alert-success", "alert-danger", "alert-warning");
         if (data.status === "Correct") {
             resultBox.classList.add("alert-success");
@@ -153,7 +149,7 @@ document.getElementById('sudokuForm').addEventListener('submit', function (event
     .catch(error => console.error('Error:', error));
 });
 
-// AJAX-based Solve Button - Solves the puzzle but does NOT stop the timer
+// AJAX-based Solve Button - solves puzzle (does not stop timer)
 document.getElementById('solveButton').addEventListener('click', function () {
     fetch('{{ route("solve") }}', {
         method: 'POST',
@@ -169,7 +165,7 @@ document.getElementById('solveButton').addEventListener('click', function () {
         resultBox.textContent = data.message;
         resultBox.classList.remove("hidden", "invisible", "alert-danger", "alert-warning");
         resultBox.classList.add("alert-success");
-        // Update the board visually with the correct solution (overwrite all cells)
+        // Update board with correct solution (overwrite all cells)
         let board = data.board;
         for (let i = 0; i < 9; i++) {
             for (let j = 0; j < 9; j++) {
@@ -185,13 +181,14 @@ document.getElementById('solveButton').addEventListener('click', function () {
 });
 
 // ----------------- Cell Highlighting Logic -----------------
-// Clear highlights from all table cells.
 function clearHighlights() {
     const cells = document.querySelectorAll("table td");
-    cells.forEach(cell => cell.classList.remove("highlight"));
+    cells.forEach(cell => {
+        cell.classList.remove("highlight");
+        cell.classList.remove("given-highlight");
+    });
 }
 
-// Highlight cells in the same row, column, or 3x3 block.
 function highlightCells(selectedRow, selectedCol) {
     const cells = document.querySelectorAll("table td");
     cells.forEach(cell => {
@@ -203,12 +200,18 @@ function highlightCells(selectedRow, selectedCol) {
             (Math.floor(row / 3) === Math.floor(selectedRow / 3) &&
              Math.floor(col / 3) === Math.floor(selectedCol / 3))
         ) {
-            cell.classList.add("highlight");
+            // If the cell's input has class 'given', add given-highlight; else add highlight.
+            const input = cell.querySelector("input.sudoku-cell");
+            if (input && input.classList.contains("given")) {
+                cell.classList.add("given-highlight");
+            } else {
+                cell.classList.add("highlight");
+            }
         }
     });
 }
 
-// Attach click event listeners to all sudoku cell inputs.
+// Attach event listeners to all sudoku cell inputs for highlighting
 document.querySelectorAll("table td input.sudoku-cell").forEach(input => {
     input.addEventListener("click", function () {
         const td = this.closest("td");
@@ -217,9 +220,8 @@ document.querySelectorAll("table td input.sudoku-cell").forEach(input => {
         clearHighlights();
         highlightCells(selectedRow, selectedCol);
     });
-    // Optional: Add keyup listener for auto-check if needed.
     input.addEventListener("keyup", function () {
-        // Uncomment or implement checkIfComplete() if desired.
+        // Optionally, trigger auto-check here if desired.
     });
 });
 </script>
