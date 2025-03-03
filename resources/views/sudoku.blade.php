@@ -4,6 +4,8 @@
 
 @section('content')
 <div class="container text-center">
+    <h1>Sudoku Game</h1>
+
     <!-- Difficulty Selection -->
     <div class="d-flex justify-content-center my-3">
         <a class="btn btn-primary mx-2" href="{{ route('home', ['difficulty' => 'easy']) }}">Easy</a>
@@ -52,74 +54,91 @@
 
 <!-- JavaScript for AJAX Check & Solve -->
 <script>
-   let elapsedSeconds = 0; // Stores the elapsed time from the server
+let elapsedSeconds = 0;
+let timerInterval = null; // To manage the timer
 
-    async function fetchStopwatchTime() {
-        try {
-            const response = await fetch('{{ route("stopwatch") }}');
+async function fetchStopwatchTime() {
+    try {
+        const response = await fetch('{{ route("stopwatch") }}');
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
+        const data = await response.json();
+        elapsedSeconds = Math.max(0, Math.floor(data.elapsed || 0));
 
-            const data = await response.json();
-            elapsedSeconds = Math.max(0, Math.floor(data.elapsed || 0)); // ✅ Store elapsed time from server
-
-        } catch (error) {
-            console.error('Error fetching stopwatch time:', error);
+        if (data.stopped) {
+            stopTimer();
+        } else {
+            startTimer();
         }
+    } catch (error) {
+        console.error('Error fetching stopwatch time:', error);
     }
+}
 
-    function updateStopwatchDisplay() {
-        const minutes = Math.floor(elapsedSeconds / 60);
-        const seconds = elapsedSeconds % 60;
-        
-        document.getElementById('stopwatch').textContent =
-            (minutes < 10 ? "0" + minutes : minutes) + ":" +
-            (seconds < 10 ? "0" + seconds : seconds);
-    }
+function updateStopwatchDisplay() {
+    const minutes = Math.floor(elapsedSeconds / 60);
+    const seconds = elapsedSeconds % 60;
+    
+    document.getElementById('stopwatch').textContent =
+        (minutes < 10 ? "0" + minutes : minutes) + ":" +
+        (seconds < 10 ? "0" + seconds : seconds);
+}
 
-    // ✅ Fetch time from the server once when the page loads
-    fetchStopwatchTime().then(() => {
-        updateStopwatchDisplay(); // Update the UI immediately
-        setInterval(() => {
-            elapsedSeconds++; // Increment every second
-            updateStopwatchDisplay();
-        }, 1000);
-    });
+// ✅ Start the timer
+function startTimer() {
+    if (timerInterval !== null) return; // Prevent multiple intervals
+    timerInterval = setInterval(() => {
+        elapsedSeconds++; 
+        updateStopwatchDisplay();
+    }, 1000);
+}
 
+// ✅ Stop the timer when the puzzle is solved
+function stopTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+}
 
+// ✅ Fetch time from the server when the page loads
+fetchStopwatchTime();
 
-    // ✅ AJAX-based Check Button
-    document.getElementById('sudokuForm').addEventListener('submit', function (event) {
-        event.preventDefault(); // Stop form from submitting normally
+// ✅ AJAX-based Check Button - Stops the timer if solved, restarts if incorrect
+document.getElementById('sudokuForm').addEventListener('submit', function (event) {
+    event.preventDefault();
 
-        let formData = new FormData(this);
-        
-        fetch('{{ route("check") }}', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json()) // Get JSON response
-        .then(data => {
-            let resultBox = document.getElementById('gameResult');
-            resultBox.textContent = data.message;
+    let formData = new FormData(this);
 
-            // ✅ Update message styling based on status
-            resultBox.classList.remove("d-none", "alert-success", "alert-danger", "alert-warning");
-            if (data.status === "Correct") {
-                resultBox.classList.add("alert-success");
-            } else if (data.status === "SomeIncorrect") {
-                resultBox.classList.add("alert-danger");
-            } else if (data.status === "GameNotOver") {
-                resultBox.classList.add("alert-warning");
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
+    fetch('{{ route("check") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        let resultBox = document.getElementById('gameResult');
+        resultBox.textContent = data.message;
 
-    // ✅ AJAX-based Solve Button (Updates Board)
-    document.getElementById('solveButton').addEventListener('click', function () {
+        // ✅ Stop the timer if the puzzle is solved
+        if (data.status === "Correct") {
+            stopTimer();
+        } else {
+            startTimer(); // ✅ Restart if incorrect
+        }
+
+        // ✅ Update message styling based on status
+        resultBox.classList.remove("d-none", "alert-success", "alert-danger", "alert-warning");
+        if (data.status === "Correct") {
+            resultBox.classList.add("alert-success");
+        } else if (data.status === "SomeIncorrect") {
+            resultBox.classList.add("alert-danger");
+        } else if (data.status === "GameNotOver") {
+            resultBox.classList.add("alert-warning");
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+// ✅ AJAX-based Solve Button - Solves the puzzle but does NOT stop the timer
+document.getElementById('solveButton').addEventListener('click', function () {
     fetch('{{ route("solve") }}', {
         method: 'POST',
         headers: {
@@ -128,21 +147,21 @@
             'Content-Type': 'application/json'
         }
     })
-    .then(response => response.json()) // Get JSON response
+    .then(response => response.json()) 
     .then(data => {
         let resultBox = document.getElementById('gameResult');
         resultBox.textContent = data.message;
         resultBox.classList.remove("d-none", "alert-danger", "alert-warning");
         resultBox.classList.add("alert-success");
 
-        // ✅ Update the board visually with the solved numbers
+        // ✅ Update the board visually with the correct solution (overwrite incorrect values)
         let board = data.board;
         for (let i = 0; i < 9; i++) {
             for (let j = 0; j < 9; j++) {
                 let cell = document.querySelector(`input[name="cell_${i}_${j}"]`);
-                if (cell && cell.value == "") { // Only fill empty cells
-                    cell.value = board[i][j];
-                    cell.classList.add("solved"); // Optional styling
+                if (cell) { 
+                    cell.value = board[i][j]; // ✅ Overwrite all values with the correct solution
+                    cell.classList.add("solved"); 
                 }
             }
         }
