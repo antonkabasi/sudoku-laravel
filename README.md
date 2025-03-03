@@ -1,14 +1,15 @@
 # Sudoku Web App
 
-## Overview
+This repository contains a web-based **Sudoku** application built using Laravel. Originally developed in C# using Windows Forms (in Croatian) for an Object‑Oriented Programming course at the Faculty of Science, University of Split in 2015.
 
-This repository contains a web-based **Sudoku** application built using Laravel. Originally developed in C# using Windows Forms (in Croatian) for an Object‑Oriented Programming course at the Faculty of Science, University of Split in 2015, this project has been completely re‑implemented as a modern **Laravel** application.
+This project has been completely re‑implemented as a modern **Laravel** application.
 
-Key new features include:
+
+## Features:
 - **Leaderboard:** Your time is compared against other scores for each difficulty level.
 - **CRUD Functionality:** Manage leaderboard entries (create, read, update, and delete) directly from the web interface.
 - **Responsive UI:** Built with Laravel Blade, Tailwind CSS, and Bootstrap components for a responsive design.
-- **Persistent Database:** Using SQLite for storing leaderboard scores.
+- **Database:** Using SQLite for storing leaderboard scores.
 
 ## Tech Stack
 
@@ -22,7 +23,7 @@ Key new features include:
 
 ## Installation & Running
 
-    1. **Installing locally on Linux, see the docs for other OS: https://laravel.com/docs/12.x/installation**
+    1. **Installing locally on Linux, see the docs for other OS then go to step 3: https://laravel.com/docs/12.x/installation**
         
         1. **Clone the repository:**
 
