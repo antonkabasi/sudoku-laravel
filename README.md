@@ -52,7 +52,7 @@ Key new features include:
 
         Open application in browser at http://127.0.0.1:8000
 
-    **Running in Docker**
+    **2. Running in Docker**
         TODO
 
 
