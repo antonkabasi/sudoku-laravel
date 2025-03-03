@@ -85,7 +85,7 @@ class SudokuController extends Controller
             return response()->json(['status' => 'error', 'message' => 'No puzzle found.']);
         }
 
-        // ✅ Overwrite all incorrect values and empty cells with the correct solution
+        // Overwrite all incorrect values and empty cells with the correct solution
         for ($i = 0; $i < 9; $i++) {
             for ($j = 0; $j < 9; $j++) {
                 if ($sudokuGame->Board[$i][$j] != $sudokuGame->Solved[$i][$j]) { 
@@ -100,7 +100,7 @@ class SudokuController extends Controller
 
         return response()->json([
             'status' => 'solved',
-            'message' => '✅ The puzzle has been corrected.',
+            'message' => '✅ The puzzle has been solved.',
             'board' => $sudokuGame->Board
         ]);
     }
