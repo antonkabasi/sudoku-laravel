@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
 use App\Models\SudokuGame;
 use App\Models\Generator;
+use App\Models\LeaderboardEntry;  // Make sure this model exists
 
 class SudokuController extends Controller
 {
@@ -30,7 +31,14 @@ class SudokuController extends Controller
         Session::put('GameStartTime', Carbon::now()->toIso8601String());
         Session::forget('StopTime'); // Ensure timer resets
 
-        return view('sudoku', compact('sudoku'));
+        // Retrieve top 10 leaderboard entries for the current difficulty (case-insensitive)
+        $leaderboard = LeaderboardEntry::whereRaw('LOWER(difficulty) = ?', [strtolower($chosenDifficulty)])
+            ->orderBy('stopwatch_value')
+            ->orderBy('date_achieved')
+            ->limit(10)
+            ->get();
+
+        return view('sudoku', compact('sudoku', 'leaderboard'));
     }
 
     // POST: /sudoku/check
@@ -89,7 +97,6 @@ class SudokuController extends Controller
         for ($i = 0; $i < 9; $i++) {
             for ($j = 0; $j < 9; $j++) {
                 if ($sudokuGame->Board[$i][$j] != $sudokuGame->Solved[$i][$j]) { 
-                    // Replace incorrect values and empty cells with the correct solution
                     $sudokuGame->Board[$i][$j] = $sudokuGame->Solved[$i][$j];
                 }
             }
@@ -104,7 +111,6 @@ class SudokuController extends Controller
             'board' => $sudokuGame->Board
         ]);
     }
-
 
     public function stopwatchTime()
     {
@@ -125,7 +131,6 @@ class SudokuController extends Controller
                 'elapsed' => $elapsed,
                 'stopped' => $stopTimeStr ? true : false
             ]);
-
         } catch (\Exception $e) {
             return response()->json(['elapsed' => 0, 'error' => 'Invalid timestamp'], 500);
         }

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SudokuController;
+use App\Http\Controllers\LeaderboardController;
 
 // Default Home Route (redirect to Sudoku)
 Route::get('/', function () {
@@ -14,3 +15,5 @@ Route::post('/sudoku/check', [SudokuController::class, 'check'])->name('check');
 Route::post('/sudoku/solve', [SudokuController::class, 'solve'])->name('solve');
 Route::post('/sudoku/validate', [SudokuController::class, 'validateSudoku'])->name('validate');
 Route::get('/sudoku/stopwatch', [SudokuController::class, 'stopwatchTime'])->name('stopwatch');
+
+Route::resource('leaderboard', LeaderboardController::class);
