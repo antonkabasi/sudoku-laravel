@@ -22,23 +22,29 @@ Key new features include:
 
 ## Installation & Running
 
-   **Option 1: Local installation**
+    1. **Installing locally on Linux, see the docs for other OS: https://laravel.com/docs/12.x/installation**
+        
+        1. **Clone the repository:**
 
-    1. **Clone the repository:**
+        git clone https://github.com/antonkabasi/sudoku-laravel.git
+        cd sudoku-laravel
+        
+        2. **Install PHP and the Laravel installer:**
+        /bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.4)"
 
-    git clone https://github.com/antonkabasi/sudoku-laravel.git
-    cd sudoku
+        composer install
+        php artisan key:generate  
+        php artisan cache:clear
+        php artisan migrate
 
-    **Option 2: Running in Docker - suggested option!**
-
-
-
-
+        php artisan serve
 
 
+    **Running in Docker**
+        TODO
 
 
-    
+
 Copyright (c) 2025 Anton Kabaši
 
 This project is licensed under the MIT License. See the LICENSE file for details.
