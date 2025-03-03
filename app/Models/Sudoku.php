@@ -4,14 +4,15 @@ namespace App\Models;
 
 class Sudoku extends Generator
 {
-    public $UserGrid; // 9x9 array for the player's grid
-    public $Difficulty;
+    public $UserGrid; // 9x9 array for the player's input
+    public $Difficulty; // Stores difficulty level
 
     // If a difficulty is provided, start a new game.
     public function __construct($difficulty = null)
     {
-        parent::__construct();
-        $this->Initialize();
+        parent::__construct(); // Call Generator constructor
+        $this->Initialize(); // Initialize UserGrid
+
         if ($difficulty !== null) {
             $this->Difficulty = $difficulty;
             $this->NewGame($difficulty);
@@ -53,7 +54,6 @@ class Sudoku extends Generator
     // Returns the game status.
     public function CheckStatus()
     {
-        // Check if any cell is empty.
         for ($i = 0; $i < 9; $i++) {
             for ($j = 0; $j < 9; $j++) {
                 if ($this->UserGrid[$i][$j] == 0) {
@@ -61,7 +61,6 @@ class Sudoku extends Generator
                 }
             }
         }
-        // Check for incorrect entries.
         for ($i = 0; $i < 9; $i++) {
             for ($j = 0; $j < 9; $j++) {
                 if ($this->UserGrid[$i][$j] != $this->Solved[$i][$j]) {

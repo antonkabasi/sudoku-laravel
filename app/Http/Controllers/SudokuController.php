@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
 use App\Models\SudokuGame;
 use App\Models\Generator;
-use App\Models\LeaderboardEntry;
 
 class SudokuController extends Controller
 {
@@ -23,6 +22,7 @@ class SudokuController extends Controller
 
         $sudoku = new SudokuGame();
         $sudoku->Board = $generator->Given; // Initialize board with given numbers
+        $sudoku->Solved = $generator->Solved; // Store the solution
         $sudoku->Difficulty = $chosenDifficulty;
 
         // Store the puzzle in session
@@ -51,9 +51,7 @@ class SudokuController extends Controller
         }
 
         // Check if the puzzle is solved
-        $generator = new Generator();
-        $generator->Solved = $sudoku->Board;
-        $status = $this->checkStatus($generator->Solved, $generator->Given);
+        $status = $this->checkStatus($sudoku->Board, $sudoku->Solved);
 
         if ($status == "GameNotOver") {
             $message = "The game isn't over yet.";
@@ -75,25 +73,27 @@ class SudokuController extends Controller
     // POST: /sudoku/solve
     public function solve()
     {
-        $sudoku = unserialize(Session::get('SudokuPuzzle'));
-        if (!$sudoku) {
+        $sudokuGame = unserialize(Session::get('SudokuPuzzle'));
+        if (!$sudokuGame) {
             return redirect()->route('home');
         }
 
-        $generator = new Generator();
-        $generator->NewGame($sudoku->Difficulty);
-        $sudoku->Board = $generator->Solved; // Reveal solution
+        // ✅ Fill in missing values with the solution (don't generate a new puzzle)
+        for ($i = 0; $i < 9; $i++) {
+            for ($j = 0; $j < 9; $j++) {
+                if ($sudokuGame->Board[$i][$j] == 0) {
+                    $sudokuGame->Board[$i][$j] = $sudokuGame->Solved[$i][$j];
+                }
+            }
+        }
 
-        Session::put('SudokuPuzzle', serialize($sudoku));
-        Session::put('StopTime', Carbon::now()->toIso8601String());
+        Session::put('SudokuPuzzle', serialize($sudokuGame));
 
-        $message = "The puzzle has been solved.";
-
-        return view('sudoku', compact('sudoku', 'message'));
+        return view('sudoku', ['sudoku' => $sudokuGame, 'message' => "The puzzle has been solved."]);
     }
 
     // Helper function to check puzzle status
-    private function checkStatus($userGrid, $givenGrid)
+    private function checkStatus($userGrid, $solvedGrid)
     {
         for ($i = 0; $i < 9; $i++) {
             for ($j = 0; $j < 9; $j++) {
@@ -105,7 +105,7 @@ class SudokuController extends Controller
 
         for ($i = 0; $i < 9; $i++) {
             for ($j = 0; $j < 9; $j++) {
-                if ($userGrid[$i][$j] != $givenGrid[$i][$j] && $givenGrid[$i][$j] != 0) {
+                if ($userGrid[$i][$j] != $solvedGrid[$i][$j]) {
                     return "SomeIncorrect";
                 }
             }
