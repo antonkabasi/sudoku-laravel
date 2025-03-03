@@ -4,8 +4,6 @@
 
 @section('content')
 <div class="container text-center">
-    <h1>Sudoku Game</h1>
-
     <!-- Difficulty Selection -->
     <div class="d-flex justify-content-center my-3">
         <a class="btn btn-primary mx-2" href="{{ route('home', ['difficulty' => 'easy']) }}">Easy</a>
