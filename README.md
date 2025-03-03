@@ -5,7 +5,7 @@
 This repository contains a web-based **Sudoku** application built using Laravel. Originally developed in C# using Windows Forms (in Croatian) for an Object‑Oriented Programming course at the Faculty of Science, University of Split in 2015, this project has been completely re‑implemented as a modern **Laravel** application.
 
 Key new features include:
-- **Top‑10 Leaderboard:** Your time is compared against other scores for each difficulty level. If your time qualifies, you'll be prompted to submit your score.
+- **Leaderboard:** Your time is compared against other scores for each difficulty level.
 - **CRUD Functionality:** Manage leaderboard entries (create, read, update, and delete) directly from the web interface.
 - **Responsive UI:** Built with Laravel Blade, Tailwind CSS, and Bootstrap components for a responsive design.
 - **Persistent Database:** Using SQLite for storing leaderboard scores.
@@ -13,7 +13,7 @@ Key new features include:
 ## Tech Stack
 
 - **Backend:** Laravel (PHP)
-- **Frontend:** Blade Templates, Tailwind CSS, and Bootstrap
+- **Frontend:** Blade, Tailwind CSS, and Bootstrap
 - **Database:** SQLite 
 - **Containerization:** Docker
 
@@ -41,15 +41,16 @@ Key new features include:
         composer install
         cp .env.example .env
         php artisan key:generate  
-        php artisan cache:clear
 
-        4. **Generate database (SQLITE):**
+        4. **Generate database (SQLITE):** Choose yes to generate SQLite database
 
         php artisan migrate
 
-        3. **Install Dependencies and key:**
+        3. **Run the app:**
+
         php artisan serve
 
+        Open application in browser at http://127.0.0.1:8000
 
     **Running in Docker**
         TODO
