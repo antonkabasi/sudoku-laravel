@@ -30,13 +30,24 @@ Key new features include:
         cd sudoku-laravel
         
         2. **Install PHP and the Laravel installer:**
+        
         /bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.4)"
+        composer global require laravel/installer
+
+        3. **Install Dependencies and key:**
+
+        npm install && npm run build
 
         composer install
+        cp .env.example .env
         php artisan key:generate  
         php artisan cache:clear
+
+        4. **Generate database (SQLITE):**
+
         php artisan migrate
 
+        3. **Install Dependencies and key:**
         php artisan serve
 
 
