@@ -47,7 +47,7 @@ This project has been completely re‑implemented as a modern **Laravel** applic
 
         php artisan migrate
 
-        3. **Run the app:**
+        5. **Run the app:**
 
         php artisan serve
 
